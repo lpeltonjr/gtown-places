@@ -4,6 +4,16 @@ import './App.css';
 
 const appDbaseLocal = {
   titleText:  "Germantown Guide",
+  places:     [
+    { name:     "Kingsway Christian Church",
+      address:  "7887 Poplar Avenue, Germantown, TN",
+      category: "church"
+    },
+    { name:     "Germantown Baptist Church",
+      address:  "9450 Poplar Avenue, Germantown, TN",
+      category: "church"
+    },   
+  ]
 };
 
 function AppHeader(props) {
