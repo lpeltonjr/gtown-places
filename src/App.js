@@ -1,9 +1,13 @@
+/* global google */
+
 import React, { Component } from 'react';
-import logo from './logo.svg';
 import './App.css';
+
+
 
 const appDbaseLocal = {
   titleText:  "Germantown Guide",
+  location:   {lat: 35.0867577, lng: -89.8100858},
   places:     [
     { name:     "Kingsway Christian Church",
       address:  "7887 Poplar Avenue, Germantown, TN",
@@ -26,7 +30,11 @@ function AppHeader(props) {
 }
 
 function AppMap(props) {
-  return (<div className="map-col">test</div>);
+  return (
+    <div className="map-col">
+      <div id="map"></div>
+    </div>
+  );
 }
 
 function AppFilter(props) {
@@ -68,12 +76,17 @@ class App extends Component {
     super(props);
 
     this.state = {
-      flags: 0
+      flags: 0,
+      map:  null,
       
     };
 
     this.iconHandler = this.burgerIconHandler.bind(this);
     this.flagMod = this.flagModifier.bind(this);
+    window.initMap = this.initMap.bind(this);
+    
+
+    this.googlePromise = null;
   }
 
   //  mask: identifies bits of this.state.flags to change;
@@ -103,7 +116,45 @@ class App extends Component {
     this.flagModifier(2, 'T');
   }
 
+  initMap(google) {
+    if (!(this.state.map)) {
+      const mapLocation = appDbaseLocal.location;
+      const mapObj = new google.maps.Map(document.getElementById('map'), {zoom: 12, center: mapLocation});
+      this.setState({map: mapObj});
+    }
+  }
+
+  loadGoogleAPI() {
+    console.log("in loadGoogleAPI");
+    if (!(this.googlePromise))
+    {
+      this.googlePromise = new Promise((resolve)=>{
+        window.googleLoaded = ()=>{
+          console.log("in googleLoaded");
+          resolve(google);
+        };
+        //const googScriptStr = '<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnnR8DMA8u33ifzz7C2zJpyGFX8D5D8MM&v=3&callback=googleLoaded">';      
+        //document.getElementById('root').insertAdjacentHTML('afterend', '<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnnR8DMA8u33ifzz7C2zJpyGFX8D5D8MM&v=3&callback=googleLoaded"></script>');
+        const script = document.createElement("script");
+        const API = 'AIzaSyAnnR8DMA8u33ifzz7C2zJpyGFX8D5D8MM';
+        script.src = `https://maps.googleapis.com/maps/api/js?key=${API}&callback=googleLoaded`;
+        script.async = true;
+        document.body.appendChild(script);
+      });
+    }
+    return (this.googlePromise);
+  }
+
+  componentWillMount() {
+    this.loadGoogleAPI();
+  }
+
   componentDidMount() {
+    
+    this.loadGoogleAPI().then((google)=>{
+      window.initMap(google);
+    });
+    
     //  prevent a repeat of the open or close filter animation until the menu
     //  icon is clicked again
     if (this.state.flags & 1) {
