@@ -60,6 +60,8 @@ class App extends Component {
     this.setState({map: mapObj});
   }
 
+  //  lifted from Stackoverflow.com:
+  //
   loadGoogleAPI() {
     console.log("in loadGoogleAPI");
     if (!(this.googlePromise))
@@ -72,8 +74,8 @@ class App extends Component {
         //const googScriptStr = '<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnnR8DMA8u33ifzz7C2zJpyGFX8D5D8MM&v=3&callback=googleLoaded">';      
         //document.getElementById('root').insertAdjacentHTML('afterend', '<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnnR8DMA8u33ifzz7C2zJpyGFX8D5D8MM&v=3&callback=googleLoaded"></script>');
         const script = document.createElement("script");
-        const API = 'AIzaSyAnnR8DMA8u33ifzz7C2zJpyGFX8D5D8MM';
-        //const API = 'WHATEVER';
+        
+        const API = 'WHATEVER';
         script.src = `https://maps.googleapis.com/maps/api/js?key=${API}&callback=googleLoaded`;
         script.async = true;
         document.body.appendChild(script);
