@@ -1,5 +1,6 @@
 html {
   box-sizing: border-box;
+  height: 100%;
 }
 
 *,
@@ -12,9 +13,14 @@ html {
 body {
   margin: 0;
   padding: 0;
+  height: 100%;
   font-family: 'Open Sans Condensed', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  height: 100%;
 }
 
 code {
@@ -25,13 +31,13 @@ code {
 .page-container {
   display: flex;
   flex-direction: column;
-  min-height: 500px;
+  min-height: 100%;
+  position: relative;
 }
 
 .page-header {
   width: 100%;
-  height: 100px;
-  position: relative;
+  flex: 0 0 100px;
   background-color: black;
   display: flex;
   align-items: center;
@@ -39,25 +45,18 @@ code {
 }
 
 .page-title {
-  width: 90%;
-  padding-right: 5%;
+  flex: 0 0 85%;
+  text-align: center;
 }
 
 .page-title-icon {
-  display: inline-block;
-  padding: 5%;
+  flex: 0 0 15%;
+  text-align: center;
 }
 
 .page-title-text {
   color: white;
   font-size: 2em;
-  text-align: center;
-}
-
-.page-content {
-  width: 100%;
-  min-height: 100%;
-  display: flex;
 }
 
 @keyframes slideOn {
@@ -70,7 +69,7 @@ code {
 	to    {left: -1000px;}
 }
 
-.fixed-filter-col {
+.filter-comp {
   position: absolute;
   top: 100px;
   bottom: 0px;
@@ -81,24 +80,27 @@ code {
   flex-direction: column;
 }
 
-.fixed-filter-col.open {
+.filter-comp.open {
   animation: slideOn 0.50s ease 0s 1 normal forwards running;
 }
 
-.fixed-filter-col.close {
+.filter-comp.close {
   animation: slideOff 0.50s ease 0s 1 normal forwards running;
 }
 
-.fixed-filter-col.invisible {
+.filter-comp.invisible {
   left: -1000px;
 }
 
-.fixed-filter-col.visible {
+.filter-comp.visible {
   left: 0px;
 }
 
+#map {
+  flex: 1 0 100%;
+}
 .map-col {
-  min-width: 100%;
+  width: 100%;
   background-color: blue;
 }
 
@@ -109,7 +111,7 @@ code {
   }
 
   .page-title {
-    width: 100%;
+    flex: 0 0 100%;
     padding-right: 0;
   }
 
@@ -117,25 +119,48 @@ code {
     display: none;
   }
 
-  .fixed-filter-col {
-    position: relative;
+  .filter-comp {
+    position: static;
+    left: 0px;
     top: 0px;
-    min-width: 15%;
+    width: 100%;
+    flex: 0 0 100%;
+    
   }
 
-  .fixed-filter-col.open {
+  .filter-comp.open {
+    position: static;
     left: 0px;
+    top: 0px;
+    width: 100%;
+    flex: 0 0 100%;
   }
 
-  .fixed-filter-col.close {
+  .filter-comp.close {
+    position: static;
     left: 0px;
+    top: 0px;
+    width: 100%;
+    flex: 0 0 100%;
   }
 
-  .fixed-filter-col.invisible {
+  .filter-comp.invisible {
+    position: static;
     left: 0px;
+    top: 0px;
+    width: 100%;
+    flex: 0 0 100%;
+  }
+
+  .filter-comp.visible {
+    position: static;
+    left: 0px;
+    top: 0px;
+    width: 100%;
+    flex: 0 0 100%;
   }
 
   .map-col {
-    min-width: 85%;
+    width: auto;
   }
 }
