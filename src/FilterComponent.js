@@ -26,7 +26,15 @@ function FilterComponent(props) {
 
     classString = classString + classModifier;
 
-    return (<div className={classString} onAnimationEnd={props.animationStop} >test</div>);
+    return (
+        <div className={classString} onAnimationEnd={props.animationStop} >
+            <ul>
+                {props.places.map(
+                    (item, idx)=>(<li key={idx} className="filter-listitem" tabIndex={0} >{item.name}</li>)
+                )}
+            </ul>
+        </div>
+    );
 }
 
 
