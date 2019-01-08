@@ -150,60 +150,30 @@ class App extends Component {
     }
     //  update the text box
     this.setState({query: event.target.value});
-    //  use a timer to prevent immediate server queries; only query 1/2 second after any input change
+    //  use a timer to prevent immediate updates on map; only 1/4 second after any input change
     this.timer = window.setTimeout(
       ()=>{
-            let newPlaces = getPlaces(this.state.query);
+        //  get the filtered results
+        let newPlaces = getPlaces(this.state.query);
             
-            if (newPlaces.length) {
-              this.setState(prevState=>{
-                prevState.markers.forEach(
-                  mark=>{
-                    if (newPlaces.filter(item=>item.name === mark.getTitle()).length === 0) {
-                      mark.setVisible(false);
-                    }
-                  }  
-                );
-              });
-              tempMarkers = this.state.markers;
-              tempMarkers.forEach(value=>{
-                let matchedPlaces = newPlaces.filter(item=>item.name === value.getTitle());
-                if (matchedPlaces.length === 0) {
-                  value.setVisible(false);
-                }
-              });
-              
+        //  update the listed places
+        if (!(newPlaces.length)) {
+          this.setState({places: []});
+        } else {
+          this.setState({places: newPlaces});
+        }
 
-              });
-            } else {
-              this.setState({places: [], markers: []});
-            }
-        //  search at the server and display the results here by updating the entire library
-          //  of this component with the search results
-          BooksAPI.search(this.state.query).then(
-            res=>{
-              if (res && res.length) {
-                //  don't allow displaying books without thumbnails
-                res = res.filter(item=>item.imageLinks);
-                //  there's no shelf information for any books returned from the search query, so assign it
-                //  such that books in the BooksApp library show their correct shelves, and all other books
-                //  are assigned to shelf 'none'
-                res = res.map(
-                  item=>{
-                    item.shelf = this.props.bookToShelfFunc(item.id);
-                    return (item);
-                  }
-                );
-                this.setState({library: res});
-              } else {
-                this.setState({library: []});
-              }
-            }
-          ).catch(e=>console.log(e));
+        //  hide markers which aren't in the filtered results; show markers that are
+        this.state.markers.forEach(mark=>{
+          if (newPlaces.filter(place=>place.name === mark.getTitle()).length) {
+            mark.setVisible(true);
+          } else {
+            mark.setVisible(false);
+          }
+        });
       },
       250
     );
-  
   }
 
   filtAnimateStop() {
