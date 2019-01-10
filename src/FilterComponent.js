@@ -28,7 +28,11 @@ function FilterComponent(props) {
 
     return (
         <div className={classString} onAnimationEnd={props.animationStop} >
-            <ul>
+            <div className="filter-query-box">
+                <input className="search-window" value={props.query} onChange={props.queryHandler} ></input>
+                <span><i className="fa fa-search search-icon"></i></span>
+            </div>
+            <ul className="filter-list">
                 {props.places.map(
                     (item, idx)=>(<li key={idx} className="filter-listitem" tabIndex={0} >{item.name}</li>)
                 )}

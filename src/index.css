@@ -69,6 +69,22 @@ code {
 	to    {left: -1000px;}
 }
 
+.filter-query-box {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  margin: 0 0 0 2%;
+}
+
+.search-window {
+  flex: 2 0 0;
+}
+
+.search-icon {
+  padding: 5px;
+  flex: 1 0 0;
+}
+
 .filter-comp {
   position: absolute;
   top: 100px;
@@ -100,8 +116,13 @@ code {
   flex: 1 0 100%;
 }
 
+.filter-list {
+  padding: 0;
+}
+
 .filter-listitem {
   list-style: none;
+  margin: 1em 0 1em 2%;
 }
 
 .filter-listitem:hover {

@@ -23,6 +23,7 @@ class App extends Component {
     this.flagMod = this.flagModifier.bind(this);
     window.initMap = this.initMap.bind(this);
     this.animationStop = this.filtAnimateStop.bind(this);
+    this.queryHandler = this.filterInputHandler.bind(this);
     
 
     this.googlePromise = null;
@@ -187,7 +188,7 @@ class App extends Component {
       <div className="page-container">
         <AppHeader iconHandler={this.iconHandler} headerText={localDbase.titleText} />        
         <div id="map" role="application"></div>
-        <FilterComponent flags={this.state.flags} places={this.state.places} animationStop={this.animationStop}/>
+        <FilterComponent query={this.state.query} queryHandler={this.queryHandler} flags={this.state.flags} places={this.state.places} animationStop={this.animationStop}/>
       </div>
     );
   }
