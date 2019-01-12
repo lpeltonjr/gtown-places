@@ -26,6 +26,8 @@ function FilterComponent(props) {
 
     classString = classString + classModifier;
 
+    const listEvent = name=>{props.listSelect(name)};
+
     return (
         <div className={classString} onAnimationEnd={props.animationStop} >
             <div className="filter-query-box">
@@ -34,7 +36,7 @@ function FilterComponent(props) {
             </div>
             <ul className="filter-list">
                 {props.places.map(
-                    (item, idx)=>(<li key={idx} className="filter-listitem" tabIndex={0} >{item.name}</li>)
+                    (item, idx)=>(<li key={idx} className="filter-listitem" tabIndex={0} onClick={e=>listEvent(item.name)} onKeyPress={e=>listEvent(item.name)}>{item.name}</li>)
                 )}
             </ul>
         </div>

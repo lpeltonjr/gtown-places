@@ -1,9 +1,11 @@
 /* global google */
 
 import React, { Component } from 'react';
+import ReactDOM from 'react-dom';
 import './App.css';
 import AppHeader from './AppHeader';
 import FilterComponent from './FilterComponent';
+import InfoWinComponent from './InfoWinComponent';
 import localDbase, { getPlaces } from './localDbase.js';
 
 
@@ -20,7 +22,7 @@ class App extends Component {
       map:      null,
       places:   [],
       markers:  [],
-      query:    null
+      query:    ""
     };
 
     //  bindings to "this" for global access to App class methods
@@ -41,6 +43,8 @@ class App extends Component {
     this.inputTimer = null;
     //  bounce timer for marker bounce animations
     this.bounceTimer = null;
+    //  iwin is the Google infoWindow object
+    this.iwin = null;
   }
 
   //  ***********************************************************
@@ -116,10 +120,13 @@ class App extends Component {
   //  initMap is required by the Google Maps API
   initMap(google) {
 
-    //  create the map and geocoder objects
+    //  create the map and geocoder and infoWindow objects
     const mapLocation = localDbase.location;
-    const mapObj = new google.maps.Map(document.getElementById('map'), {zoom: 15, center: mapLocation});
+    const mapObj = new google.maps.Map(document.getElementById('map'), {zoom: 12, center: mapLocation});
     this.gcoder = new google.maps.Geocoder();
+    this.iwin = new google.maps.InfoWindow();
+
+    this.iwin.setContent(`<div id="infoWindow"></div>`);
  
     //  create the markers and drop them on the map
     let innerInitMap = (results)=>{
@@ -211,11 +218,46 @@ class App extends Component {
     );
   }
 
-  filterListSelectEvent(event) {
+  filterListSelectEvent(name, event) {
+    //  get the Google API handle ...
+    this.loadGoogleAPI().then(google=>{
+      //  then scroll through the markers to find the one matching
+      //  the name of the clicked list item
+      this.state.markers.forEach(item=>{
+        if (item.title === name) {
+          //  create a closure around the selected marker
+          const bouncingItem = item;
+          //  start the marker bouncing
+          item.setAnimation(google.maps.Animation.BOUNCE);
+          if (this.bounceTimer) {
+            window.clearTimeout(this.bounceTimer);
+          }
+          //  allow it to bounce for a quarter second
+          this.bounceTimer = window.setTimeout(
+            ()=>{
+              //  then stop it from bouncing
+              bouncingItem.setAnimation(null);
+              //  and set-up to render the InfoWinComponent inside the info window
+              //  once the Google infoWindow object has added the infoWindow node
+              //  to the DOM
+              //  (thanks to https://cuneyt.aliustaoglu.biz/en/using-google-maps-in-react-without-custom-libraries/
+              //  for the example on how to render the React component inside the info window)
+              if (this.iwin) {
+                this.iwin.addListener('domready', e=>{
+                  ReactDOM.render(<InfoWinComponent />, document.getElementById('infoWindow'));
+                });
+                this.iwin.open(this.state.map, bouncingItem);
+              }
+            },
+            250
+          );
+        }
+      });
+    });
 
-    if (this.bounceTimer) {
-      window.clearTimeout(this.bounceTimer);
-    }
+    
+    
+  
   }
   //  *********************************************************** 
 
@@ -225,7 +267,7 @@ class App extends Component {
       <div className="page-container">
         <AppHeader iconHandler={this.iconHandler} headerText={localDbase.titleText} />        
         <div id="map" role="application"></div>
-        <FilterComponent query={this.state.query} queryHandler={this.queryHandler} flags={this.state.flags} places={this.state.places} animationStop={this.animationStop}/>
+        <FilterComponent query={this.state.query} queryHandler={this.queryHandler} flags={this.state.flags} places={this.state.places} animationStop={this.animationStop} listSelect={this.listSelect}/>
       </div>
     );
   }
