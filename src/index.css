@@ -37,7 +37,7 @@ code {
 
 .page-header {
   width: 100%;
-  flex: 0 0 100px;
+  flex: 1 0 0;
   background-color: black;
   display: flex;
   align-items: center;
@@ -56,7 +56,7 @@ code {
 
 .page-title-text {
   color: white;
-  font-size: 2em;
+  font-size: 1.5em;
 }
 
 @keyframes slideOn {
@@ -77,7 +77,8 @@ code {
 }
 
 .search-window {
-  flex: 2 0 0;
+  flex: 2 0 100%;
+  max-width: 80%;
 }
 
 .search-icon {
@@ -113,7 +114,7 @@ code {
 }
 
 #map {
-  flex: 1 0 100%;
+  flex: 20 0 0;
 }
 
 .filter-list {
@@ -140,9 +141,18 @@ code {
     font-family: sans-serif;
   }
 
+  #root {
+    max-width: 800px;
+    margin: auto;
+  }
+
   .page-title {
     flex: 0 0 100%;
     padding-right: 0;
+  }
+
+  .page-title-text {
+    font-size: 1.5em;
   }
 
   .page-title-icon {
@@ -154,7 +164,7 @@ code {
     left: 0px;
     top: 0px;
     width: 100%;
-    flex: 0 0 100%;
+    flex: 1 0 0;
     
   }
 
@@ -163,7 +173,7 @@ code {
     left: 0px;
     top: 0px;
     width: 100%;
-    flex: 0 0 100%;
+    flex: 1 0 0;
   }
 
   .filter-comp.close {
@@ -171,7 +181,7 @@ code {
     left: 0px;
     top: 0px;
     width: 100%;
-    flex: 0 0 100%;
+    flex: 1 0 0;
   }
 
   .filter-comp.invisible {
@@ -179,7 +189,7 @@ code {
     left: 0px;
     top: 0px;
     width: 100%;
-    flex: 0 0 100%;
+    flex: 1 0 0;
   }
 
   .filter-comp.visible {
@@ -187,7 +197,21 @@ code {
     left: 0px;
     top: 0px;
     width: 100%;
-    flex: 0 0 100%;
+    flex: 1 0 0;
+  }
+
+  .filter-query-box {
+    justify-content: left;
+    padding: 5px;
+  }
+
+  .search-window {
+    max-width: 50%;
+    font-size: 1em;
+  }
+
+  .filter-listitem {
+    font-size: 1em;
   }
 
   .map-col {

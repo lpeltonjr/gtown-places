@@ -11,6 +11,10 @@ class App extends Component {
   constructor(props) {
     super(props);
 
+    //  the map object, marker objects, displayed place list, and query string
+    //  will all be stored as application state; flags will be used to mark the
+    //  required state of the (mobile) sliding filter/list component and to
+    //  force re-rendering when it changes
     this.state = {
       flags:    0,
       map:      null,
@@ -19,18 +23,33 @@ class App extends Component {
       query:    null
     };
 
+    //  bindings to "this" for global access to App class methods
     this.iconHandler = this.burgerIconHandler.bind(this);
     this.flagMod = this.flagModifier.bind(this);
     window.initMap = this.initMap.bind(this);
     this.animationStop = this.filtAnimateStop.bind(this);
     this.queryHandler = this.filterInputHandler.bind(this);
-    
+    this.listSelect = this.filterListSelectEvent.bind(this);
 
+    //  class instance variables available to all methods
+    //  googlePromise resolves to the Google API object
     this.googlePromise = null;
+    //  gcoder is the Google Geocoder object for obtaining latLng
+    //  coordinates from our database addresses
     this.gcoder = null;
-    this.timer = null;
+    //  debounce timer for the filter's input element
+    this.inputTimer = null;
+    //  bounce timer for marker bounce animations
+    this.bounceTimer = null;
   }
 
+  //  ***********************************************************
+  //  Methods to service the slide-on/slide-away filter/list
+  //  component in mobile views
+  //  ***********************************************************
+  //  changes flag states to cause re-rendering of the (mobile)
+  //  filter/list component whenever it is opened or closed by
+  //  clicking on the hamburger icon;
   //  mask: identifies bits of this.state.flags to change;
   //  action: 'S': set; 'C': clear; 'T': toggle
   flagModifier(mask, action) {
@@ -58,14 +77,51 @@ class App extends Component {
     this.flagModifier(2, 'T');
   }
 
+  //  handles the end of slide-on or slide-off animation of the (mobile) filter
+  //  component: clears the flag that indicates an open or close sequence
+  //  is required
+  filtAnimateStop() {
+    if (this.state.flags & 1) {
+      this.flagModifier(1, 'C');
+    }
+  }
+  //  ***********************************************************
+  
+  //  ***********************************************************
+  //  ***********************************************************
+  //  methods to handle loading the Google API, initialize the map,
+  //  and create the map's markers
+  //  ***********************************************************
+  //  ***********************************************************
+  //  given a place from the database, returns a promise which resolves to an object
+  //  containing that place's name and LatLng coordinates; since places in the database
+  //  use street addresses, calling this function is necessary to place markers on the map
+  getCoord(google, place)
+  {
+    return(
+      new Promise(
+         (resolve, reject)=>{
+          this.gcoder.geocode({address: place.address}, (results, status)=>{
+            if (status === google.maps.GeocoderStatus.OK) {
+              resolve({location: results[0].geometry.location, name: place.name});
+            } else {
+              reject(status);
+            }
+          });
+        }
+      )
+    );
+  }
+  
+  //  initMap is required by the Google Maps API
   initMap(google) {
 
-  
-  
+    //  create the map and geocoder objects
     const mapLocation = localDbase.location;
-    const mapObj = new google.maps.Map(document.getElementById('map'), {zoom: 12, center: mapLocation});
+    const mapObj = new google.maps.Map(document.getElementById('map'), {zoom: 15, center: mapLocation});
     this.gcoder = new google.maps.Geocoder();
  
+    //  create the markers and drop them on the map
     let innerInitMap = (results)=>{
       let marks = results.map(
         item=>new google.maps.Marker({position: item.location, map: mapObj, animation: google.maps.Animation.DROP, title: item.name, visible: true})
@@ -73,7 +129,6 @@ class App extends Component {
       this.setState({map: mapObj, markers: marks});
     };
 
-    //this.setState({map: mapObj});
     let placesLatLngPromises = this.state.places.map(item=>this.getCoord(google, item));
     Promise.all(placesLatLngPromises).then(
       results=>innerInitMap(results)
@@ -82,20 +137,15 @@ class App extends Component {
 
   
   //  lifted from Stackoverflow.com:
-  //
   loadGoogleAPI() {
-    console.log("in loadGoogleAPI");
     if (!(this.googlePromise))
     {
       this.googlePromise = new Promise((resolve)=>{
         window.googleLoaded = ()=>{
-          console.log("in googleLoaded");
           resolve(google);
         };
-        //const googScriptStr = '<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnnR8DMA8u33ifzz7C2zJpyGFX8D5D8MM&v=3&callback=googleLoaded">';      
-        //document.getElementById('root').insertAdjacentHTML('afterend', '<script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAnnR8DMA8u33ifzz7C2zJpyGFX8D5D8MM&v=3&callback=googleLoaded"></script>');
-        const script = document.createElement("script");
         
+        const script = document.createElement("script");
         const API = localDbase.myAPI;
         script.src = `https://maps.googleapis.com/maps/api/js?key=${API}&callback=googleLoaded`;
         script.async = true;
@@ -109,50 +159,34 @@ class App extends Component {
     //  load all places from the database into our local "places" list that is
     //  filterable; if this were a real app, the database would be on the server
     this.setState({places: getPlaces("all")});
+    //  start loading the Google API
     this.loadGoogleAPI();
   }
 
   componentDidMount() {
-
-    if (!(this.state.map))
-    {
-      this.loadGoogleAPI().then((google)=>{
-        window.initMap(google);
-      });
-    }
+    //  load the map and create the markers once the Google API has finished loading
+    this.loadGoogleAPI().then((google)=>{window.initMap(google);});
   }
+  //  ***********************************************************
 
-  //  given a place from the database, returns a promise which resolves to an object
-  //  containing that place's name and LatLng coordinates; since places in the database
-  //  use street addresses, calling this function is necessary to place markers on the map
-  getCoord(google, place)
-  {
-    return(
-      new Promise(
-        (resolve, reject)=>{
-          this.gcoder.geocode({address: place.address}, (results, status)=>{
-            if (status === google.maps.GeocoderStatus.OK) {
-              resolve({location: results[0].geometry.location, name: place.name});
-            } else {
-              reject(status);
-            }
-          });
-        }
-      )
-    );
-  }
-
+  //  ***********************************************************
+  //  ***********************************************************
+  //  event handlers for the filter/list elements
+  //  ***********************************************************
+  //  ***********************************************************
+  
+  //  handle text box input
   filterInputHandler(event) {
     event.preventDefault();
   
     //  if the input has changed within X seconds of the last input, clear the timeout and set it again
-    if (this.timer) {
-      window.clearTimeout(this.timer);
+    if (this.inputTimer) {
+      window.clearTimeout(this.inputTimer);
     }
     //  update the text box
     this.setState({query: event.target.value});
     //  use a timer to prevent immediate updates on map; only 1/4 second after any input change
-    this.timer = window.setTimeout(
+    this.inputTimer = window.setTimeout(
       ()=>{
         //  get the filtered results
         let newPlaces = getPlaces(this.state.query);
@@ -177,12 +211,15 @@ class App extends Component {
     );
   }
 
-  filtAnimateStop() {
-    if (this.state.flags & 1) {
-      this.flagModifier(1, 'C');
+  filterListSelectEvent(event) {
+
+    if (this.bounceTimer) {
+      window.clearTimeout(this.bounceTimer);
     }
   }
-  
+  //  *********************************************************** 
+
+
   render() {
     return (
       <div className="page-container">
