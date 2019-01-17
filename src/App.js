@@ -7,6 +7,7 @@ import AppHeader from './AppHeader';
 import FilterComponent from './FilterComponent';
 import InfoWinComponent from './InfoWinComponent';
 import localDbase, { getPlaces } from './localDbase.js';
+import yelpHelper from './yelpHelper.js';
 
 
 class App extends Component {
@@ -45,6 +46,10 @@ class App extends Component {
     this.bounceTimer = null;
     //  iwin is the Google infoWindow object
     this.iwin = null;
+    //  create an object for accessing the Yelp API
+    this.yelp = new yelpHelper(localDbase.myYelpAPI);
+
+    this.yelpPlaces = [];
   }
 
   //  ***********************************************************
@@ -91,6 +96,16 @@ class App extends Component {
   }
   //  ***********************************************************
   
+  //  ***********************************************************
+  //  ***********************************************************
+  //  methods to access the Yelp Fusion API and initialize place
+  //  data for the infoWindow
+  //  ***********************************************************
+  //  ***********************************************************
+  loadAllPlaceInfo() {
+  }
+
+
   //  ***********************************************************
   //  ***********************************************************
   //  methods to handle loading the Google API, initialize the map,
@@ -153,7 +168,7 @@ class App extends Component {
         };
         
         const script = document.createElement("script");
-        const API = localDbase.myAPI;
+        const API = localDbase.myGoogleAPI;
         script.src = `https://maps.googleapis.com/maps/api/js?key=${API}&callback=googleLoaded`;
         script.async = true;
         document.body.appendChild(script);
@@ -165,9 +180,17 @@ class App extends Component {
   componentWillMount() {
     //  load all places from the database into our local "places" list that is
     //  filterable; if this were a real app, the database would be on the server
-    this.setState({places: getPlaces("all")});
+    //  NOTE that this.state.places will change based on the search/filter box input,
+    //  but yelpPlaces will not, so we can append Yelp-specific information to it
+    //  for all available places and keep using it
+    this.yelpPlaces = getPlaces("all");
+    this.setState({places: this.yelpPlaces});
     //  start loading the Google API
     this.loadGoogleAPI();
+
+    this.yelpPlaces.forEach(item=>{
+      this.yelp.getYelpID(item, id=>{item.id = id;});
+    });
   }
 
   componentDidMount() {
