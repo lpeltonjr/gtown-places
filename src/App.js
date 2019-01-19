@@ -49,7 +49,7 @@ class App extends Component {
     //  create an object for accessing the Yelp API
     this.yelp = new yelpHelper(localDbase.myYelpAPI);
 
-    this.yelpPlaces = [];
+    this.yelpDetails = [];
   }
 
   //  ***********************************************************
@@ -181,14 +181,14 @@ class App extends Component {
     //  load all places from the database into our local "places" list that is
     //  filterable; if this were a real app, the database would be on the server
     //  NOTE that this.state.places will change based on the search/filter box input,
-    //  but yelpPlaces will not, so we can append Yelp-specific information to it
+    //  but yelpDetails will not, so we can append Yelp-specific information to it
     //  for all available places and keep using it
-    this.yelpPlaces = getPlaces("all");
-    this.setState({places: this.yelpPlaces});
+    this.yelpDetails = getPlaces("all");
+    this.setState({places: this.yelpDetails});
     //  start loading the Google API
     this.loadGoogleAPI();
 
-    this.yelpPlaces.forEach(item=>{
+    this.yelpDetails.forEach(item=>{
       this.yelp.getYelpID(item, id=>{item.id = id;});
     });
   }
@@ -242,45 +242,65 @@ class App extends Component {
   }
 
   filterListSelectEvent(name, event) {
+    const infoWinWaitPromises = [];
+
+    //  get the appropriate details object for this place
+    let yelpPlace = this.yelpDetails.filter(item=>item.name === name)[0];
+    if (yelpPlace.id) {
+      //  if we've not loaded the details from Yelp for this place yet, do it now,
+      if (!yelpPlace.details) {
+        //  "loaded" becomes a promise which will hold off rendering the infoWindow
+       //  until Yelp details have been loaded using AJAX
+        yelpPlace.loaded = this.yelp.getYelpDetails(yelpPlace.id, details=>{
+          //  "details" is the entire Yelp response, just tacked onto our object
+          yelpPlace.details = details;
+        });
+      }
+      //  reference the 1st promise that must be resolved to open the info window
+      infoWinWaitPromises[0] = yelpPlace.loaded;
+    }
+    //  we could put an "else" here to load data from another source, if Yelp doesn't
+    //  give us an ID for a place in our database; but given the time constraints of
+    //  this project, I'm only picking places that will return IDs from Yelp
+
+    //  locate the marker that must bounce
+    let bouncingMarker = this.state.markers.filter(item=>item.title === name)[0];
     //  get the Google API handle ...
     this.loadGoogleAPI().then(google=>{
-      //  then scroll through the markers to find the one matching
-      //  the name of the clicked list item
-      this.state.markers.forEach(item=>{
-        if (item.title === name) {
-          //  create a closure around the selected marker
-          const bouncingItem = item;
-          //  start the marker bouncing
-          item.setAnimation(google.maps.Animation.BOUNCE);
-          if (this.bounceTimer) {
-            window.clearTimeout(this.bounceTimer);
-          }
-          //  allow it to bounce for a quarter second
-          this.bounceTimer = window.setTimeout(
-            ()=>{
-              //  then stop it from bouncing
-              bouncingItem.setAnimation(null);
-              //  and set-up to render the InfoWinComponent inside the info window
-              //  once the Google infoWindow object has added the infoWindow node
-              //  to the DOM
-              //  (thanks to https://cuneyt.aliustaoglu.biz/en/using-google-maps-in-react-without-custom-libraries/
-              //  for the example on how to render the React component inside the info window)
-              if (this.iwin) {
-                this.iwin.addListener('domready', e=>{
-                  ReactDOM.render(<InfoWinComponent />, document.getElementById('infoWindow'));
-                });
-                this.iwin.open(this.state.map, bouncingItem);
-              }
-            },
-            250
-          );
-        }
+      //  start the marker bouncing
+      bouncingMarker.setAnimation(google.maps.Animation.BOUNCE);
+      if (this.bounceTimer) {
+        window.clearTimeout(this.bounceTimer);
+      }
+      //  now set a promise that resolves when it stops bouncing in a quarter second
+      infoWinWaitPromises[1] = new Promise((resolve)=>{
+        //  allow it to bounce for a quarter second
+        this.bounceTimer = window.setTimeout(
+          ()=>{
+            //  then stop it from bouncing
+            bouncingMarker.setAnimation(null);
+            resolve();
+          },
+          250
+        );
+      });
+
+      //  when both promises resolve -- yelp details received and marker has
+      //  stopped bouncing, then render the info window
+      Promise.all(infoWinWaitPromises).then(()=>{
+        //  and set-up to render the InfoWinComponent inside the info window
+        //  once the Google infoWindow object has added the infoWindow node
+        //  to the DOM
+        //  (thanks to https://cuneyt.aliustaoglu.biz/en/using-google-maps-in-react-without-custom-libraries/
+        //  for the example on how to render the React component inside the info window)
+        if (this.iwin) {
+          this.iwin.addListener('domready', e=>{
+            ReactDOM.render(<InfoWinComponent details={yelpPlace.details} />, document.getElementById('infoWindow'));
+          });
+          this.iwin.open(this.state.map, bouncingMarker);
+        }  
       });
     });
-
-    
-    
-  
   }
   //  *********************************************************** 
 

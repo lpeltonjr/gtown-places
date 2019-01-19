@@ -20,14 +20,32 @@ class yelpHelper {
         fetch(requestStr, {headers: this.yelpHeader})
         .then(res=>res.json())
         .then(res=>{
-          console.log(`retrieved id ${res.businesses[0].id} for ${place.name}`);
-          storeIDfunc(res.businesses[0].id);
+            console.log(`retrieved id ${res.businesses[0].id} for ${place.name}`);
+            storeIDfunc(res.businesses[0].id);
         })
-        .catch(e=>console.log(`Error fetching ID for ${place.name}`));
+        .catch(e=>{
+            console.log(`Error fetching ID for ${place.name}`);
+        });
     }
 
+    //  returns a promise which resolves when the details have been stored via
+    //  the storeDetailsFunc provided by the caller; thus, the caller should wait
+    //  till the promise resolves to do anything with the details
     getYelpDetails(id, storeDetailsFunc) {
-      let requestStr = this.baseURL + "businesses/" + id;
+        return (new Promise((resolve)=>{
+            let requestStr = this.baseURL + "businesses/" + id;
+
+            fetch(requestStr, {headers: this.yelpHeader})
+            .then(res=>res.json())
+            .then(res=>{
+                console.log(`retrieved details ${res} for ${id}`);
+                storeDetailsFunc(res);
+                resolve();
+            })
+            .catch(e=>{
+                console.log(`Error fetching details for ${id}`);
+            });
+        }));
     }
 }
 
