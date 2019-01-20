@@ -148,6 +148,10 @@ class App extends Component {
       let marks = results.map(
         item=>new google.maps.Marker({position: item.location, map: mapObj, animation: google.maps.Animation.DROP, title: item.name, visible: true})
       );
+      //  add event listeners to open an infoWindow
+      marks.forEach(mark=>{
+        mark.addListener('click', e=>{this.filterListSelectEvent(mark.getTitle(), e)});
+      });
       this.setState({map: mapObj, markers: marks});
     };
 
@@ -242,22 +246,31 @@ class App extends Component {
   }
 
   filterListSelectEvent(name, event) {
-    const infoWinWaitPromises = [];
+    let detailPromise;
+    let bouncePromise;
+    let reviewsPromise;
 
     //  get the appropriate details object for this place
     let yelpPlace = this.yelpDetails.filter(item=>item.name === name)[0];
     if (yelpPlace.id) {
-      //  if we've not loaded the details from Yelp for this place yet, do it now,
+      //  if we've not loaded the details from Yelp for this place yet, do it now
       if (!yelpPlace.details) {
-        //  "loaded" becomes a promise which will hold off rendering the infoWindow
-       //  until Yelp details have been loaded using AJAX
-        yelpPlace.loaded = this.yelp.getYelpDetails(yelpPlace.id, details=>{
+        //  detailPromise becomes a promise which will hold off rendering the infoWindow
+        //  until Yelp details have been loaded using AJAX
+        detailPromise = this.yelp.getYelpData(yelpPlace.id, {reviews: false, callback: details=>{
           //  "details" is the entire Yelp response, just tacked onto our object
           yelpPlace.details = details;
-        });
+          //console.log(details);
+        }});
       }
-      //  reference the 1st promise that must be resolved to open the info window
-      infoWinWaitPromises[0] = yelpPlace.loaded;
+
+      //  if we've not loaded the reviews from Yelp for this place yet, do it now
+      if (!yelpPlace.reviews) {
+        reviewsPromise = this.yelp.getYelpData(yelpPlace.id, {reviews: true, callback: reviews=>{
+          yelpPlace.reviews = reviews;
+          console.log(reviews);
+        }});
+      }
     }
     //  we could put an "else" here to load data from another source, if Yelp doesn't
     //  give us an ID for a place in our database; but given the time constraints of
@@ -273,7 +286,7 @@ class App extends Component {
         window.clearTimeout(this.bounceTimer);
       }
       //  now set a promise that resolves when it stops bouncing in a quarter second
-      infoWinWaitPromises[1] = new Promise((resolve)=>{
+      bouncePromise = new Promise((resolve)=>{
         //  allow it to bounce for a quarter second
         this.bounceTimer = window.setTimeout(
           ()=>{
@@ -287,7 +300,7 @@ class App extends Component {
 
       //  when both promises resolve -- yelp details received and marker has
       //  stopped bouncing, then render the info window
-      Promise.all(infoWinWaitPromises).then(()=>{
+      Promise.all([bouncePromise, detailPromise, reviewsPromise]).then(()=>{
         //  and set-up to render the InfoWinComponent inside the info window
         //  once the Google infoWindow object has added the infoWindow node
         //  to the DOM
@@ -295,7 +308,7 @@ class App extends Component {
         //  for the example on how to render the React component inside the info window)
         if (this.iwin) {
           this.iwin.addListener('domready', e=>{
-            ReactDOM.render(<InfoWinComponent details={yelpPlace.details} />, document.getElementById('infoWindow'));
+            ReactDOM.render(<InfoWinComponent details={yelpPlace.details} reviews={yelpPlace.reviews} />, document.getElementById('infoWindow'));
           });
           this.iwin.open(this.state.map, bouncingMarker);
         }  
