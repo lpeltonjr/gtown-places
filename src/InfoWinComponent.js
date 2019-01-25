@@ -30,6 +30,7 @@ import small_1_half_3x from './img/small_1_half@3x.png';
 import small_2_half_3x from './img/small_2_half@3x.png';
 import small_3_half_3x from './img/small_3_half@3x.png';
 import small_4_half_3x from './img/small_4_half@3x.png';
+import yelpTM from './img/Yelp_trademark_RGB_outline.png';
 
 
 
@@ -43,7 +44,7 @@ function InfoWinComponent(props) {
     const photoMR = props.details.photos[0].replace(/o\.jpg/, "ms.jpg");
     const photoHR = props.details.photos[0].replace(/o\.jpg/, "ms.jpg");
     let imgRspSet = `${photoLR} 40w, ${photoMR} 100w, ${photoHR} 600w`;
-    let imgRspSiz = '(max-width: 100px) 40px, (max-width: 500px) 100px, 600px';
+    let imgRspSiz = '(max-width: 100px) 40px, (max-width: 300px) 100px, 600px';
     let imgAlt = `Yelp user photo of ${props.details.name}`;
 
     
@@ -111,7 +112,8 @@ function InfoWinComponent(props) {
             break;
     }
     let ratingSet = `${ratingLR} 1x, ${ratingMR} 2x, ${ratingHR} 3x`;
-    console.log(ratingSet);
+    //console.log(ratingSet);
+    console.log(props);
 
     return (
         <div className="iwin-container">
@@ -121,10 +123,14 @@ function InfoWinComponent(props) {
                     <img src={photoHR} srcSet={imgRspSet} sizes={imgRspSiz} alt={imgAlt} className="iwin-photo"></img>
                 </div>
                 <div className="iwin-details">
-                <img src={ratingHR} srcSet={ratingSet} alt={ratingAltStr} className="iwin-photo"></img>
+                    <img src={ratingHR} srcSet={ratingSet} alt={ratingAltStr} className="iwin-photo"></img>
+                    <p className="iwin-review">{props.reviews.reviews[0].text}</p>
+                    <p className="iwin-review iwin-reviewer">{props.reviews.reviews[0].user.name}</p>
                 </div> 
             </div>
-            <footer className="iwin-footer"></footer>
+            <footer className="iwin-footer">
+                <span>More at <img src={yelpTM} alt="Yelp trademark" className="iwin-logo"></img></span>
+            </footer>
         </div>
     );
 }

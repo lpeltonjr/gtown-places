@@ -14,18 +14,19 @@ class yelpHelper {
     //  this method initiates the AJAX request and executes the callback
     //  when a response is received
     getYelpID(place, storeIDfunc) {
-        let address = place.address.split(', ');
-        let requestStr = this.baseURL + `businesses/matches?name=${place.name}&address1=${address[0]}&city=${address[1]}&state=${address[2]}&country=US`;
-        
-        fetch(requestStr, {headers: this.yelpHeader})
-        .then(res=>res.json())
-        .then(res=>{
-            console.log(`retrieved id ${res.businesses[0].id} for ${place.name}`);
-            storeIDfunc(res.businesses[0].id);
-        })
-        .catch(e=>{
-            console.log(`Error fetching ID for ${place.name}`);
-        });
+        return (new Promise((resolve)=>{
+            let address = place.address.split(', ');
+            let requestStr = this.baseURL + `businesses/matches?name=${place.name}&address1=${address[0]}&city=${address[1]}&state=${address[2]}&country=US`;
+            fetch(requestStr, {headers: this.yelpHeader})
+            .then(res=>res.json())
+            .then(res=>{
+                storeIDfunc(res.businesses[0].id);
+                resolve();
+            })
+            .catch(e=>{
+                console.log(`Error fetching ID for ${place.name}`);    
+            });
+        }));    
     }
 
     //  returns a promise which resolves when the details have been stored via

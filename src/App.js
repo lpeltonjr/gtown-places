@@ -33,6 +33,7 @@ class App extends Component {
     this.animationStop = this.filtAnimateStop.bind(this);
     this.queryHandler = this.filterInputHandler.bind(this);
     this.listSelect = this.filterListSelectEvent.bind(this);
+    this.fiLiWrap = this.filterListWrapper.bind(this);
 
     //  class instance variables available to all methods
     //  googlePromise resolves to the Google API object
@@ -150,7 +151,7 @@ class App extends Component {
       );
       //  add event listeners to open an infoWindow
       marks.forEach(mark=>{
-        mark.addListener('click', e=>{this.filterListSelectEvent(mark.getTitle(), e)});
+        mark.addListener('click', e=>{this.fiLiWrap(mark.getTitle(), e)});
       });
       this.setState({map: mapObj, markers: marks});
     };
@@ -193,7 +194,7 @@ class App extends Component {
     this.loadGoogleAPI();
 
     this.yelpDetails.forEach(item=>{
-      this.yelp.getYelpID(item, id=>{item.id = id;});
+      item.idPromise = this.yelp.getYelpID(item, id=>{item.id = id;});
     });
   }
 
@@ -315,6 +316,11 @@ class App extends Component {
       });
     });
   }
+
+  filterListWrapper(name, event) {
+    let yelpPlace = this.yelpDetails.filter(item=>item.name === name)[0];
+    yelpPlace.idPromise.then(()=>{this.listSelect(name, event)});
+  }
   //  *********************************************************** 
 
 
@@ -323,7 +329,7 @@ class App extends Component {
       <div className="page-container">
         <AppHeader iconHandler={this.iconHandler} headerText={localDbase.titleText} />        
         <div id="map" role="application"></div>
-        <FilterComponent query={this.state.query} queryHandler={this.queryHandler} flags={this.state.flags} places={this.state.places} animationStop={this.animationStop} listSelect={this.listSelect}/>
+        <FilterComponent query={this.state.query} queryHandler={this.queryHandler} flags={this.state.flags} places={this.state.places} animationStop={this.animationStop} listSelect={this.fiLiWrap}/>
       </div>
     );
   }
