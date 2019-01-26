@@ -121,6 +121,10 @@ function InfoWinComponent(props) {
             <div className="iwin-body">
                 <div className="iwin-picframe">
                     <img src={photoHR} srcSet={imgRspSet} sizes={imgRspSiz} alt={imgAlt} className="iwin-photo"></img>
+                    <div className="iwin-link">
+                        <span>More:</span>
+                        <img src={yelpTM} alt="Yelp trademark" className="iwin-logo"></img>
+                    </div>
                 </div>
                 <div className="iwin-details">
                     <img src={ratingHR} srcSet={ratingSet} alt={ratingAltStr} className="iwin-photo"></img>
@@ -128,9 +132,6 @@ function InfoWinComponent(props) {
                     <p className="iwin-review iwin-reviewer">{props.reviews.reviews[0].user.name}</p>
                 </div> 
             </div>
-            <footer className="iwin-footer">
-                <span>More at <img src={yelpTM} alt="Yelp trademark" className="iwin-logo"></img></span>
-            </footer>
         </div>
     );
 }

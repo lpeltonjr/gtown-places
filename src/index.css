@@ -157,9 +157,9 @@ code {
 .iwin-body {
   flex: 2 0 0;
   display: flex;
-  /*justify-content: space-between;*/
-  align-items: top;
-  margin: 5px;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin: 0px 5px;
   width: 100%;
 }
 
@@ -168,10 +168,12 @@ code {
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  color: white;
   
 }
 .iwin-photo {
   object-fit: contain;
+ 
 }
 
 .iwin-details {
@@ -185,20 +187,21 @@ code {
   color: white;
   max-width: 100%;
   height: auto;
+  margin: 5px;
 }
 
 .iwin-reviewer {
   font-style: italic;
 }
 
-.iwin-footer {
-  flex: 1 0 0;
-  color: white;
-  margin: 5px;
+.iwin-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .iwin-logo {
-  width: 100px;
+  width: 4em;
   height: auto;
 }
 
