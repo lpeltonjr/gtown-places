@@ -14,17 +14,24 @@ class yelpHelper {
     //  this method initiates the AJAX request and executes the callback
     //  when a response is received
     getYelpID(place, storeIDfunc) {
-        return (new Promise((resolve)=>{
+        return (new Promise((resolve, reject)=>{
             let address = place.address.split(', ');
             let requestStr = this.baseURL + `businesses/matches?name=${place.name}&address1=${address[0]}&city=${address[1]}&state=${address[2]}&country=US`;
             fetch(requestStr, {headers: this.yelpHeader})
             .then(res=>res.json())
             .then(res=>{
-                storeIDfunc(res.businesses[0].id);
-                resolve();
+                if (res.businesses && (res.businesses.length > 0))
+                {
+                    storeIDfunc(res.businesses[0].id);
+                    resolve();
+                } else {
+                    console.log(`Error YH002 fetching ID for ${place.name}} in getYelpID`);
+                    reject();
+                }
             })
             .catch(e=>{
-                console.log(`Error fetching ID for ${place.name}`);    
+                console.log(`Error YH001, ${e} fetching ID for ${place.name} in getYelpID`);
+                reject(e);    
             });
         }));    
     }
@@ -33,7 +40,7 @@ class yelpHelper {
     //  the storeDetailsFunc provided by the caller; thus, the caller should wait
     //  till the promise resolves to do anything with the details
     getYelpData(id, params) {
-        return (new Promise((resolve)=>{
+        return (new Promise((resolve, reject)=>{
             let requestStr = this.baseURL + "businesses/" + id;
             if (params.reviews === true) {
                 requestStr = requestStr + "/reviews";
@@ -48,10 +55,11 @@ class yelpHelper {
             })
             .catch(e=>{
                 if (params.reviews === true) {
-                    console.log(`Error fetching reviews for ${id}`)
+                    console.log(`Error YH002, ${e} fetching reviews for ${id} in getYelpData`)
                 } else {
-                    console.log(`Error fetching details for ${id}`);
+                    console.log(`Error YH003, ${e} fetching details for ${id} in getYelpData`);
                 }
+                reject(e);
             });
         }));
     }

@@ -32,8 +32,8 @@ class App extends Component {
     window.initMap = this.initMap.bind(this);
     this.animationStop = this.filtAnimateStop.bind(this);
     this.queryHandler = this.filterInputHandler.bind(this);
-    this.listSelect = this.filterListSelectEvent.bind(this);
-    this.fiLiWrap = this.filterListWrapper.bind(this);
+    this.listSelect = this.filterListWrapper.bind(this);
+    
 
     //  class instance variables available to all methods
     //  googlePromise resolves to the Google API object
@@ -49,7 +49,8 @@ class App extends Component {
     this.iwin = null;
     //  create an object for accessing the Yelp API
     this.yelp = new yelpHelper(localDbase.myYelpAPI);
-
+    //  a complete copy of this.state.places, with Yelp-specific data appended
+    //  (is not affected by filtered list, such as this.state.places is)
     this.yelpDetails = [];
   }
 
@@ -97,16 +98,7 @@ class App extends Component {
   }
   //  ***********************************************************
   
-  //  ***********************************************************
-  //  ***********************************************************
-  //  methods to access the Yelp Fusion API and initialize place
-  //  data for the infoWindow
-  //  ***********************************************************
-  //  ***********************************************************
-  loadAllPlaceInfo() {
-  }
-
-
+  
   //  ***********************************************************
   //  ***********************************************************
   //  methods to handle loading the Google API, initialize the map,
@@ -142,7 +134,7 @@ class App extends Component {
     this.gcoder = new google.maps.Geocoder();
     this.iwin = new google.maps.InfoWindow();
 
-    this.iwin.setContent(`<div id="infoWindow"></div>`);
+    this.iwin.setContent(`<div id="info-window"></div>`);
  
     //  create the markers and drop them on the map
     let innerInitMap = (results)=>{
@@ -151,15 +143,15 @@ class App extends Component {
       );
       //  add event listeners to open an infoWindow
       marks.forEach(mark=>{
-        mark.addListener('click', e=>{this.fiLiWrap(mark.getTitle(), e)});
+        mark.addListener('click', e=>{this.listSelect(mark.getTitle(), e)});
       });
       this.setState({map: mapObj, markers: marks});
     };
 
     let placesLatLngPromises = this.state.places.map(item=>this.getCoord(google, item));
-    Promise.all(placesLatLngPromises).then(
-      results=>innerInitMap(results)
-    ).catch(e=>console.log(e));
+    Promise.all(placesLatLngPromises)
+    .then(results=>innerInitMap(results))
+    .catch(e=>console.log(`Error 001, ${e} in initMap`));
   }
 
   
@@ -246,80 +238,76 @@ class App extends Component {
     );
   }
 
-  filterListSelectEvent(name, event) {
+  //  this event opens an infoWindow when a map marker is clicked or when a
+  //  list item is selected
+  filterListSelectEvent(yelpPlace, google, event) {
     let detailPromise;
     let bouncePromise;
     let reviewsPromise;
 
-    //  get the appropriate details object for this place
-    let yelpPlace = this.yelpDetails.filter(item=>item.name === name)[0];
-    if (yelpPlace.id) {
-      //  if we've not loaded the details from Yelp for this place yet, do it now
-      if (!yelpPlace.details) {
-        //  detailPromise becomes a promise which will hold off rendering the infoWindow
-        //  until Yelp details have been loaded using AJAX
-        detailPromise = this.yelp.getYelpData(yelpPlace.id, {reviews: false, callback: details=>{
-          //  "details" is the entire Yelp response, just tacked onto our object
-          yelpPlace.details = details;
-          //console.log(details);
-        }});
-      }
-
-      //  if we've not loaded the reviews from Yelp for this place yet, do it now
-      if (!yelpPlace.reviews) {
-        reviewsPromise = this.yelp.getYelpData(yelpPlace.id, {reviews: true, callback: reviews=>{
-          yelpPlace.reviews = reviews;
-          console.log(reviews);
-        }});
-      }
+    //  if we've not loaded the details from Yelp for this place yet, do it now
+    if (!yelpPlace.details) {
+      //  detailPromise becomes a promise which will hold off rendering the infoWindow
+      //  until Yelp details have been loaded using AJAX
+      detailPromise = this.yelp.getYelpData(yelpPlace.id, {reviews: false, callback: details=>{yelpPlace.details = details;}});
     }
-    //  we could put an "else" here to load data from another source, if Yelp doesn't
-    //  give us an ID for a place in our database; but given the time constraints of
-    //  this project, I'm only picking places that will return IDs from Yelp
 
+    //  if we've not loaded the reviews from Yelp for this place yet, do it now
+    if (!yelpPlace.reviews) {
+      reviewsPromise = this.yelp.getYelpData(yelpPlace.id, {reviews: true, callback: reviews=>{yelpPlace.reviews = reviews;}});
+    }
+    
     //  locate the marker that must bounce
-    let bouncingMarker = this.state.markers.filter(item=>item.title === name)[0];
-    //  get the Google API handle ...
-    this.loadGoogleAPI().then(google=>{
-      //  start the marker bouncing
-      bouncingMarker.setAnimation(google.maps.Animation.BOUNCE);
-      if (this.bounceTimer) {
-        window.clearTimeout(this.bounceTimer);
-      }
-      //  now set a promise that resolves when it stops bouncing in a quarter second
-      bouncePromise = new Promise((resolve)=>{
-        //  allow it to bounce for a quarter second
-        this.bounceTimer = window.setTimeout(
-          ()=>{
-            //  then stop it from bouncing
-            bouncingMarker.setAnimation(null);
-            resolve();
-          },
-          250
-        );
-      });
+    let bouncingMarker = this.state.markers.filter(item=>item.title === yelpPlace.name)[0];
+    //  start the marker bouncing
+    bouncingMarker.setAnimation(google.maps.Animation.BOUNCE);
+    if (this.bounceTimer) {
+      window.clearTimeout(this.bounceTimer);
+    }
+    //  now set a promise that resolves when it stops bouncing in a quarter second
+    bouncePromise = new Promise((resolve)=>{
+      //  allow it to bounce for a quarter second
+      this.bounceTimer = window.setTimeout(
+        ()=>{
+          //  then stop it from bouncing
+          bouncingMarker.setAnimation(null);
+          resolve();
+        },
+        250
+      );
+    });
 
-      //  when both promises resolve -- yelp details received and marker has
-      //  stopped bouncing, then render the info window
-      Promise.all([bouncePromise, detailPromise, reviewsPromise]).then(()=>{
-        //  and set-up to render the InfoWinComponent inside the info window
-        //  once the Google infoWindow object has added the infoWindow node
-        //  to the DOM
-        //  (thanks to https://cuneyt.aliustaoglu.biz/en/using-google-maps-in-react-without-custom-libraries/
-        //  for the example on how to render the React component inside the info window)
-        if (this.iwin) {
-          this.iwin.addListener('domready', e=>{
-            ReactDOM.render(<InfoWinComponent details={yelpPlace.details} reviews={yelpPlace.reviews} />, document.getElementById('infoWindow'));
-          });
-          this.iwin.open(this.state.map, bouncingMarker);
-        }  
-      });
+    //  when all promises resolve -- yelp details & reviews received and marker has
+    //  stopped bouncing, then render the info window
+    Promise.all([bouncePromise, detailPromise, reviewsPromise]).then(()=>{
+      //  and set-up to render the InfoWinComponent inside the info window
+      //  once the Google infoWindow object has added the infoWindow node
+      //  to the DOM
+      //  (thanks to https://cuneyt.aliustaoglu.biz/en/using-google-maps-in-react-without-custom-libraries/
+      //  for the example on how to render the React component inside the info window)
+      if (this.iwin) {
+        this.iwin.addListener('domready', e=>{
+          ReactDOM.render(<InfoWinComponent details={yelpPlace.details} reviews={yelpPlace.reviews} />, document.getElementById('info-window'));
+        });
+        this.iwin.open(this.state.map, bouncingMarker);
+      }  
     });
   }
 
+  //  this method is a wrapper around the immediately preceding method, to
+  //  ensure a Yelp ID is available for the place corresponding to the
+  //  clicked marker or selected list item
   filterListWrapper(name, event) {
+    //  find the Yelp object for the place clicked on the map or selected
+    //  from the textual list
     let yelpPlace = this.yelpDetails.filter(item=>item.name === name)[0];
-    yelpPlace.idPromise.then(()=>{this.listSelect(name, event)});
+    //  when we can load the Google API object and when we have a Yelp ID
+    //  for this place, go handle bouncing the marker and opening an infoWindow
+    Promise.all([this.loadGoogleAPI(), yelpPlace.idPromise])
+    .then(values=>{
+      this.filterListSelectEvent(yelpPlace, values[0], event);
+    })
+    .catch(()=>console.log(`Error 0010, filterListWrapper failure`));
   }
   //  *********************************************************** 
 
@@ -329,7 +317,7 @@ class App extends Component {
       <div className="page-container">
         <AppHeader iconHandler={this.iconHandler} headerText={localDbase.titleText} />        
         <div id="map" role="application"></div>
-        <FilterComponent query={this.state.query} queryHandler={this.queryHandler} flags={this.state.flags} places={this.state.places} animationStop={this.animationStop} listSelect={this.fiLiWrap}/>
+        <FilterComponent query={this.state.query} queryHandler={this.queryHandler} flags={this.state.flags} places={this.state.places} animationStop={this.animationStop} listSelect={this.listSelect}/>
       </div>
     );
   }
