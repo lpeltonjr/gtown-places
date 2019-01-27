@@ -31,7 +31,7 @@ function FilterComponent(props) {
     return (
         <div className={classString} onAnimationEnd={props.animationStop} >
             <div className="filter-query-box">
-                <input className="search-window" value={props.query} onChange={props.queryHandler} ></input>
+                <input className="search-window" aria-label="Enter a term to filter places on the map" value={props.query} onChange={props.queryHandler} ></input>
                 <span><i className="fa fa-search search-icon"></i></span>
             </div>
             <ul className="filter-list">

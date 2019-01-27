@@ -52,6 +52,7 @@ class App extends Component {
     //  a complete copy of this.state.places, with Yelp-specific data appended
     //  (is not affected by filtered list, such as this.state.places is)
     this.yelpDetails = [];
+    
   }
 
   //  ***********************************************************
@@ -130,11 +131,11 @@ class App extends Component {
 
     //  create the map and geocoder and infoWindow objects
     const mapLocation = localDbase.location;
-    const mapObj = new google.maps.Map(document.getElementById('map'), {zoom: 12, center: mapLocation});
+    const mapObj = new google.maps.Map(document.getElementById('map'), {zoom: 15, center: mapLocation});
     this.gcoder = new google.maps.Geocoder();
     this.iwin = new google.maps.InfoWindow();
 
-    this.iwin.setContent(`<div id="info-window"></div>`);
+    this.iwin.setContent(`<div id="info-window" tabindex="0"></div>`);
  
     //  create the markers and drop them on the map
     let innerInitMap = (results)=>{
@@ -233,6 +234,9 @@ class App extends Component {
             mark.setVisible(false);
           }
         });
+
+        //  close any open info window whenever the list is filtered
+        this.iwin.close();
       },
       250
     );
@@ -316,7 +320,7 @@ class App extends Component {
     return (
       <div className="page-container">
         <AppHeader iconHandler={this.iconHandler} headerText={localDbase.titleText} />        
-        <div id="map" role="application"></div>
+        <div id="map" role="application" tabIndex={0}></div>
         <FilterComponent query={this.state.query} queryHandler={this.queryHandler} flags={this.state.flags} places={this.state.places} animationStop={this.animationStop} listSelect={this.listSelect}/>
       </div>
     );

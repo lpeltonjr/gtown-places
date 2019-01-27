@@ -40,6 +40,7 @@ function InfoWinComponent(props) {
     let ratingMR;
     let ratingHR;
     
+    //  responsive image stuff ... (and LR will never get used, I think)
     const photoLR = props.details.photos[0].replace(/o\.jpg/, "ss.jpg");
     const photoMR = props.details.photos[0].replace(/o\.jpg/, "ms.jpg");
     const photoHR = props.details.photos[0].replace(/o\.jpg/, "ms.jpg");
@@ -115,6 +116,12 @@ function InfoWinComponent(props) {
     //console.log(ratingSet);
     console.log(props);
 
+    //  set-up to link the Yelp logo to the general website, if there's no url
+    //  to a business page for the current place we're going to display
+    if (!(props.details.url) || (props.details.url.length === 0)) {
+        props.details.url = "https://www.yelp.com";
+    }
+
     return (
         <div className="iwin-container">
             <header className="iwin-header">{props.details.name}</header>
@@ -123,12 +130,12 @@ function InfoWinComponent(props) {
                     <img src={photoHR} srcSet={imgRspSet} sizes={imgRspSiz} alt={imgAlt} className="iwin-photo"></img>
                     <div className="iwin-link">
                         <span>More:</span>
-                        <img src={yelpTM} alt="Yelp trademark" className="iwin-logo"></img>
+                        <a href={props.details.url}><img src={yelpTM} alt="Yelp trademark" aria-label="select to open the page for this business at Yelp" className="iwin-logo"></img></a>
                     </div>
                 </div>
                 <div className="iwin-details">
                     <img src={ratingHR} srcSet={ratingSet} alt={ratingAltStr} className="iwin-photo"></img>
-                    <p className="iwin-review">{props.reviews.reviews[0].text}</p>
+                    <p className="iwin-review" tabIndex={0}>{props.reviews.reviews[0].text}</p>
                     <p className="iwin-review iwin-reviewer">{props.reviews.reviews[0].user.name}</p>
                 </div> 
             </div>

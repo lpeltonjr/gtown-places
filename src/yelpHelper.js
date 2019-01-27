@@ -2,6 +2,9 @@
 class yelpHelper {
     constructor(APIkey) {
         this.key = APIkey;
+        //  using cors-anywhere because I don't want to beat my head against
+        //  a wall with CORS -- this works, and I'm not a full stack software
+        //  developer yet
         this.baseURL = "https://cors-anywhere.herokuapp.com/https://api.yelp.com/v3/";
         
         this.yelpHeader = new Headers();
@@ -36,9 +39,9 @@ class yelpHelper {
         }));    
     }
 
-    //  returns a promise which resolves when the details have been stored via
-    //  the storeDetailsFunc provided by the caller; thus, the caller should wait
-    //  till the promise resolves to do anything with the details
+    //  returns a promise which resolves when the details/reviews have been stored via
+    //  the params.callback function provided by the caller; thus, the caller should wait
+    //  till the promise resolves to do anything with the details/reviews
     getYelpData(id, params) {
         return (new Promise((resolve, reject)=>{
             let requestStr = this.baseURL + "businesses/" + id;
