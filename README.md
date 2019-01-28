@@ -1,44 +1,35 @@
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# Neighborhood Map Project
 
-## Available Scripts
+This is a project for Udacity's Front-End Development program.  It is an accessible application which works offline and was created with React.
 
-In the project directory, you can run:
+## Source Files
 
-### `npm start`
+*   ./src/App.css
+*   ./src/index.css
+*   ./src/index.js
+*   ./src/App.js
+*   ./src/AppHeader.js
+*   ./src/FilterComponent.js
+*   ./src/InfoWinComponent.js
+*   ./src/localDbase.js
+*   ./src/yelpHelper.js
+*   ./src/serviceWorker.js
+*   ./src/img/*.png (images provided by Yelp)
 
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+## Instructions
 
-### `npm test`
+The website lists several places of interest in a neighborhood of Germantown, Tennessee.  The places are marked on a Google map, and they are listed as results of a search box.
 
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+The search term "all" will cause all places to be listed.  Otherwise, enter a search term (such as "store") to filter the places listed.
 
-### `npm run build`
+Selecting a listed place with the mouse or keyboard will open an infoWindow above the associated map marker.  The infoWindow displays a picture and review fetched from Yelp.  The place can also be selected with the mouse by clicking on a map marker.  NOTE that from what I've read, Google does not provide a means of selecting a map marker with the keyboard, thus the map is accessible by virtue of the textual list.  I searched for a way to make the markers selectable with the keyboard, as they were in a previous Udacity project using MapBox.  But I was unable to determine how to do so.
 
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
+The service worker provided is the default service worker of create-React-app.  I am submitting the project with this service worker due to time contraints, and I was concerned that it might not cache Yelp responses, but in fact, it does seem to do so.
 
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
 
-### `npm run eject`
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
