@@ -33,7 +33,7 @@ The search term "all" will cause all places to be listed.  Otherwise, enter a se
 
 Selecting a listed place with the mouse or keyboard will open an infoWindow above the associated map marker.  The infoWindow displays a picture and review fetched from Yelp.  The place can also be selected with the mouse by clicking on a map marker.  NOTE that from what I've read, Google does not provide a means of selecting a map marker with the keyboard, thus the map is accessible by virtue of the textual list.  I searched for a way to make the markers selectable with the keyboard, as they were in a previous Udacity project using MapBox.  But I was unable to determine how to do so.
 
-The service worker provided is the default service worker of create-React-app.  I am submitting the project with this service worker due to time contraints, and I was concerned that it might not cache Yelp responses, but in fact, it does seem to do so.
+The service worker provided is the default service worker of create-react-app.  I am submitting the project with this service worker due to time contraints. I was concerned that it might not cache Yelp responses, but in fact, it does seem to do so.
 
 
 
