@@ -17,7 +17,15 @@ This is a project for Udacity's Front-End Development program.  It is an accessi
 *   ./src/img/*.png (images provided by Yelp)
 
 
-## Instructions
+## Setup
+
+From the command line, "npm run build".
+
+Then, to serve the website on localhost:5000: "serve -s build"
+
+These are the standard instructions for running a create-react-app application as a production build.
+
+## User Instructions
 
 The website lists several places of interest in a neighborhood of Germantown, Tennessee.  The places are marked on a Google map, and they are listed as results of a search box.
 
